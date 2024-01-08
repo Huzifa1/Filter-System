@@ -974,7 +974,7 @@ beas = x}});(function (n, t) {
 this[n] = t()})("Reactor", function () {
 return function (o) {
 appSettings = o;if (o.Base) beas = o.Base;else {
-var getUrl = window.location;var baseUrl = getUrl.protocol + "//" + getUrl.host + "/";if (o.subDirectory) baseUrl = baseUrl + o.subDirectory + "/";appSettings.Base = baseUrl}
+var getUrl = window.location;var baseUrl = getUrl.protocol + "//" + getUrl.host + "/Filter-System/";if (o.subDirectory) baseUrl = baseUrl + o.subDirectory + "/";appSettings.Base = baseUrl}
 if (o.App) execEl = o.App;if (o.Additional) {
 bea([o.Additional], "ready", function () { })}
 }});class Nuclear {
