@@ -3,7 +3,7 @@ Reactor({
     "defaultView": "home",
     "authView": "login",
     "init": function(){
-        
+        console.log('hi');
     },
     "tick": function(){
         
