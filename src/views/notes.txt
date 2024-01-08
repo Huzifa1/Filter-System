@@ -1,0 +1,7 @@
+Missing: 
+
+    - getOpOpts must filter according to column type.
+
+
+    - when sorting save the order
+    - bug in sorting, the event doesnot activated

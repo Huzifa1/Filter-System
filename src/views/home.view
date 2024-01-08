@@ -1,0 +1,800 @@
+<div class="hv100 p50 bgb10 oya">
+    <div class="g_nm w50 md_w65 bgw round filter-system sh10">
+        <form o-sub="generateQuery">
+            <div class="p25 conditions"></div>
+            <div class="mt30 actions ph20 pv10">
+                <div bind="where" class="buttons l _cb">
+                    <div :if="where.hasOwnProperty('children')" class="pointer fs13 g_nm p5 round2x add-cond"
+                        @click="addCondition">
+                        <div class="vm g_nm mr3 lh10">
+                            <span class="iconify fs16" data-icon="mdi:plus"></span>
+                        </div>
+                        <span class="vm">Add Condition</span>
+                    </div>
+                    <div :if="!where?.groups?.length > 1" class="pointer fs13 g_nm p5 round2x ml10"
+                        @click="addNewGroup">
+                        <div class="vm g_nm mr3 lh10">
+                            <span class="iconify fs16" data-icon="mdi:folder-plus-outline"></span>
+                        </div>
+                        <span class="vm">Add group</span>
+                    </div>
+                </div>
+                <button type="submit" class="sbtn primary g_nm">
+                    Run Filter
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+
+<script>
+    let columns = [
+        {
+            column: "isValid",
+            type: "boolean",
+            title: "Is Valid"
+        },
+        {
+            column: "Email",
+            type: "email",
+            title: "Email"
+        },
+        {
+            column: "color",
+            type: "color",
+            title: "Color"
+        },
+        {
+            column: "createdAt",
+            type: "date",
+            title: "Created At"
+        },
+        {
+            column: "Currency",
+            type: "options",
+            options: [
+                {
+                    title: "USD",
+                    value: "USD"
+                },
+                {
+                    title: "LBP",
+                    value: "LBP"
+                }
+            ],
+            title: "Currency"
+        },
+        {
+            column: "Price",
+            type: "String",
+            title: "Price"
+        },
+        {
+            column: "Amount",
+            type: "Integer",
+            title: "Amount"
+        },
+        {
+            column: "firstName",
+            type: "String",
+            title: "First Name"
+        },
+        {
+            column: "lastName",
+            type: "String",
+            title: "Last Name"
+        }
+    ];
+
+    let operators = [
+        {
+            title: "=",
+            value: "eq"
+        },
+        {
+            title: ">=",
+            value: "gte"
+        },
+        {
+            title: ">",
+            value: "gt"
+        },
+        {
+            title: "<=",
+            value: "lte"
+        },
+        {
+            title: "<",
+            value: "lt"
+        },
+        {
+            title: "contains",
+            value: "contains"
+        }
+    ]
+
+
+    var idCounter = 1;
+    var where = {
+        id: 0,
+        children: [
+            // {
+            //     column: "Price",
+            //     op: "eq",
+            //     value: "120$"
+            // },
+            // {
+            //     column: "Currency",
+            //     op: "eq",
+            //     value: "USD"
+            // }
+        ],
+        // groups: [
+        //     {
+        //         id: 1,
+        //         children: [
+        //             {
+        //                 column: "Price",
+        //                 op: "eq",
+        //                 value: "120$"
+        //             },
+        //             {
+        //                 column: "Currency",
+        //                 op: "eq",
+        //                 value: "USD"
+        //             }
+        //         ],
+        //     },
+        //     {
+        //         id: 2,
+        //         children: [
+        //             {
+        //                 column: "firstName",
+        //                 op: "contains",
+        //                 value: "Huzaifa"
+        //             },
+        //             {
+        //                 column: "lastName",
+        //                 op: "contains",
+        //                 value: "Kab"
+        //             }
+        //         ],
+        //     }
+        // ],
+        // ops: [
+        //     {
+        //         id: "1,2",
+        //         type: "or"
+        //     }
+        // ],
+    };
+
+    renderElements(where, $(".conditions"));
+
+    $(".add-cond").trigger("click");
+
+    function renderElements(wh, selector) {
+        if (wh.hasOwnProperty("children")) {
+
+            for (let i = 0; i < wh.children.length; i++) {
+                let c = wh.children[i];
+
+                let condition = `
+                    <div class="condition round2x" data-index="${i}" data-indecies="${selector.data("indecies")}">
+                        <div class="handler p10 sq lh10 pointer">
+                            <div class="cc">
+                                <span class="iconify fs20" data-icon="mdi:drag-vertical"></span>
+                            </div>
+                        </div>
+                        <div class="inputs p10">
+                            <div class="w50">
+                                <select name="column" sl data-attr="column" @change="saveData">
+                                    ${getColOpts(c.column)}
+                                </select>
+                                <div class="ov la fs20 sq arrow-down">
+                                    <div class="cc lh10">
+                                        <span class="iconify fs18" data-icon="mdi:chevron-down"></span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="w20">
+                                <select name="operator" sl data-attr="op" @change="saveData">
+                                    ${getOpOpts(c.op)}
+                                </select>
+                                <div class="ov la fs20 sq arrow-down">
+                                    <div class="cc lh10">
+                                        <span class="iconify fs18" data-icon="mdi:chevron-down"></span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="w30">
+                                ${getInput(c)}
+                            </div>
+                        </div>
+                        <div class="delete p10 sq lh10 pointer" @click="beforeDeleteCondition">
+                            <div class="cc">
+                                <span class="iconify fs18" data-icon="mdi:delete-outline"></span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+
+                selector.append(condition);
+            }
+
+        } else {
+            for (let i = 0; i < wh.groups.length; i++) {
+                let g = wh.groups[i];
+
+                let op = wh.ops[i - 1];
+                if (op) {
+                    let and_or = `
+                        <div class="g_nm and-or" data-id="${op.id}">
+                            <select name="" sl sl-class="small" @change="saveOpData">
+                                <option value="and" ${op.type == 'and' ? 'selected' : ''}>And</option>
+                                <option value="or" ${op.type == 'or' ? 'selected' : ''}>Or</option>
+                            </select>
+                            <div class="ov la fs20 sq arrow-down">
+                                <div class="cc lh10">
+                                    <span class="iconify fs16" data-icon="mdi:chevron-down"></span>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    selector.append(and_or);
+                }
+
+                let group = $(`
+                    <div drop drop-greedy="true" @drop="dropCond" sort sort-connectWith=".group" sort-placeholder="placeholder" sort-items="> .condition" sort-opacity="0.5"
+                        sort-forcePlaceholderSize="true" sort-handle=".handler" sort-containment=".filter-system"
+                        class="group p15 round2x ${g.id}" data-id="${g.id}">
+                    </div>
+                `);
+
+                let ids = '';
+                let indecies = selector.data("indecies");
+                if (indecies || indecies == 0) {
+                    ids = indecies + "," + g.id;
+                } else ids = g.id;
+                group.data("indecies", ids);
+
+                renderElements(g, group);
+
+                let buttons = $(`<div class="buttons mt20 l _cb"></div>`);
+
+                if (g.hasOwnProperty("children")) {
+                    buttons.append(`
+                        <div class="pointer fs13 g_nm p5 round2x" @click="addCondition">
+                            <div class="vm g_nm mr3 lh10">
+                                <span class="iconify fs16" data-icon="mdi:plus"></span>
+                            </div>
+                            <span class="vm">Add Condition</span>
+                        </div>
+                    `);
+                }
+
+                let has2groups = false;
+                if (g.hasOwnProperty("groups") && g.groups.length > 1) has2groups = true;
+
+                if (ids.toString().split(",").length < 3 && !has2groups) {
+                    buttons.append(`
+                        <div class="pointer fs13 g_nm p5 round2x ml10" @click="addNewGroup">
+                            <div class="vm g_nm mr3 lh10">
+                                <span class="iconify fs16" data-icon="mdi:folder-plus-outline"></span>
+                            </div>
+                            <span class="vm">Add inner group</span>
+                        </div>
+                    `);
+                }
+
+                group.append(buttons);
+
+                selector.append(group);
+            }
+        }
+    }
+
+    function getColOpts(col) {
+        let opts = '';
+        for (let i = 0; i < columns.length; i++) {
+            let c = columns[i];
+            opts += `<option value="${c.column}" ${c.column == col ? 'selected' : ''}>${c.title}</option>`;
+        }
+
+        return opts;
+    }
+
+    function getOpOpts(op) {
+        let ops = '';
+        for (let i = 0; i < operators.length; i++) {
+            let o = operators[i];
+            ops += `<option value="${o.value}" ${o.value == op ? 'selected' : ''}>${o.title}</option>`
+        }
+
+        return ops;
+    }
+
+    function getInput(col) {
+        let column = columns.find(x => x.column == col.column);
+        let t = column.type.toLowerCase();
+        let input;
+
+        if (t == 'email' || t == 'string' || t == 'color') {
+            let type = t == 'string' ? 'text' : t;
+            input = `
+                <input class="w100" name="value" type="${t}" value="${col.value}" 
+                    placeholder="${column.title}" data-attr="value" @change="saveData" :required>
+            `;
+        } else if (t == 'integer' || t == 'number') {
+            input = `
+                <input class="w100" name="value" numeric type="text" value="${col.value}" 
+                    placeholder="${column.title}" data-attr="value" @change="saveData" :required>
+            `;
+        } else if (t == 'date') {
+            input = `
+                <input class="w100" name="value" date readonly type="text" value="${col.value}" 
+                    placeholder="${column.title}" data-attr="value" @change="saveData" :required>
+            `;
+        } else if (t == 'boolean' || t == 'options') {
+            let opts = t == 'options' ? column.options : [{ title: "Yes", value: true }, { title: "No", value: false }];
+            input = `<select sl data-attr="value" name="value" @change="saveData" :required>`;
+            for (let i = 0; i < opts.length; i++) {
+                let element = opts[i];
+                input += `<option value="${element.value}" ${element.value.toString() == col.value ? 'selected' : ''}>${element.title}</option>`
+            }
+            input += '</select>';
+            input += `
+                <div class="ov la fs20 sq arrow-down">
+                    <div class="cc lh10">
+                        <span class="iconify fs18" data-icon="mdi:chevron-down"></span>
+                    </div>
+                </div>
+            `
+        }
+
+
+        return input;
+    }
+
+    function addNewGroup(ev, el) {
+        let indecies = el.closest(".group").data("indecies")?.toString();
+        let group = getGroup(indecies);
+
+        if ((group.hasOwnProperty("children"))) {
+
+            let oldg = {
+                id: idCounter++,
+                children: group.children
+            }
+
+            let newg = {
+                id: idCounter++,
+                children: [
+                    {
+                        column: columns[0].column,
+                        op: operators[0].value,
+                        value: getDefaultValue(columns[0])
+                    },
+                ],
+            }
+
+            let op = {
+                id: oldg.id + ',' + newg.id,
+                type: "and"
+            }
+
+            group.groups = [oldg, newg];
+            group.ops = [op];
+
+            delete group.children;
+        } else {
+            let lastGroup = group.groups[group.groups.length - 1];
+
+            // Adding new group
+            let g = {
+                id: idCounter++,
+                children: [
+                    {
+                        column: columns[0].column,
+                        op: operators[0].value,
+                        value: getDefaultValue(columns[0])
+                    },
+                ],
+            }
+
+            group.groups.push(g);
+
+            // Adding new op
+            let op = {
+                id: lastGroup.id + ',' + (idCounter - 1),
+                type: "and"
+            }
+
+            group.ops.push(op);
+        }
+
+
+        rebuildFilter();
+    }
+
+    function addCondition(ev, el) {
+        let indecies = el.closest(".group").data("indecies")?.toString();
+        let group = getGroup(indecies);
+
+        group.children.push({
+            column: columns[0].column,
+            op: operators[0].value,
+            value: getDefaultValue(columns[0])
+        });
+
+        rebuildFilter();
+    }
+
+    function getGroup(indecies, isParent) {
+        let group = where;
+        if (indecies) {
+            let arr = indecies.split(",");
+            for (let i = 0; i < arr.length; i++) {
+                if (isParent) {
+                    if (i == arr.length - 1) continue;
+                }
+
+                let id = arr[i];
+                group = group.groups.find(x => x.id == id);
+
+            }
+        }
+
+        return group;
+    }
+
+    function beforeDeleteCondition(ev, el) {
+        let indecies = el.closest(".group").data("indecies")?.toString();
+        let group = getGroup(indecies);
+        let i = el.closest(".condition").data("index");
+
+        deleteCondition(group, i, indecies);
+        rebuildFilter();
+    }
+
+    function deleteCondition(group, i, indecies) {
+        if (group.children.length > 1) {
+            group.children.splice(i, 1);
+        } else {
+            let parentGroup = getGroup(indecies, true);
+
+            if (!parentGroup.hasOwnProperty("groups")) return;
+
+            // Delete the group
+            let b = parentGroup.groups.find(x => x.id == group.id);
+            let ind = parentGroup.groups.indexOf(b);
+            let isEdge = true;
+
+            let prevG = parentGroup.groups[ind - 1];
+            let nextG = parentGroup.groups[ind + 1]
+            if (prevG && nextG) isEdge = false;
+
+            // Delete the operator and adjust the id if its an edge
+            let op = parentGroup.ops.find(x => x.id.includes(group.id));
+            let indd = parentGroup.ops.indexOf(op);
+            parentGroup.ops.splice(indd, 1);
+
+            if (!isEdge) {
+                let nextOp = parentGroup.ops[indd];
+                nextOp.id = prevG.id + "," + nextG.id;
+            }
+
+
+            parentGroup.groups.splice(ind, 1);
+
+            // Remove them from the group
+            if (parentGroup.groups.length == 1) {
+                if (parentGroup.groups[0].hasOwnProperty("children")) {
+                    parentGroup.children = parentGroup.groups[0].children;
+                    delete parentGroup.groups;
+                    delete parentGroup.ops;
+                } else {
+                    let temp = clone(parentGroup.groups[0]);
+                    parentGroup.groups = temp.groups;
+                    parentGroup.ops = temp.ops;
+                }
+            }
+        }
+    }
+
+    function saveData(ev, el) {
+        let val = el.val();
+        let attr = el.data("attr");
+
+        let indecies = el.closest(".group").data("indecies")?.toString();
+        let group = getGroup(indecies);
+
+        let i = el.closest(".condition").data("index");
+        let condition = group.children[i];
+
+        condition[attr] = val;
+
+        if (attr == "column") {
+            condition.value = getDefaultValue(columns.find(x => x.column == condition.column));
+            rebuildFilter();
+        }
+    }
+
+    function saveOpData(ev, el) {
+        let opId = el.closest(".and-or").data("id");
+
+        let indecies = el.closest(".and-or").prev(".group").data("indecies");
+        let parentGroup = getGroup(indecies.toString(), true);
+
+        let op = parentGroup.ops.find(x => x.id == opId);
+        op.type = el.val();
+    }
+
+    function rebuildFilter() {
+        $(".conditions").html('');
+        renderElements(where, $(".conditions"));
+        globalWatch();
+    }
+
+    function dropCond(ev, el, ui) {
+        cl("hi");
+
+        let groupEl = el;
+        let condEl = ui.draggable;
+
+        // old group info
+        let oldindecies = condEl.data("indecies")?.toString();
+        let oldg = getGroup(oldindecies);
+        let conid = condEl.data("index");
+        let condition = oldg.children[conid];
+
+        // new group info
+        let newindecies = groupEl.data("indecies")?.toString();
+        let newg = getGroup(newindecies);
+        newg.children.push(clone(condition));
+
+
+        deleteCondition(oldg, conid, oldindecies);
+
+        rebuildFilter();
+    }
+
+
+    function getDefaultValue(col) {
+        let t = col.type.toLowerCase();
+        let v = '';
+
+        if (t == 'string' || t == 'email') v = '';
+        else if (t == 'integer' || t == 'number') v = 0;
+        else if (t == 'color') v = "#000000";
+        else if (t == 'boolean') v = true;
+        else if (t == 'date') v = getDate();
+        else if (t == 'options') v = col.options[0].value
+
+        return v;
+    }
+
+    function getDate() {
+        let date = new Date();
+        let year = date.getFullYear();
+        let month = date.getMonth() + 1;
+        let day = date.getDate();
+
+        if (month < 10) month = '0' + month;
+        if (day < 10) day = '0' + day;
+
+        return year + '-' + month + '-' + day;
+    }
+
+    function generateQuery(form, info) {
+        let query = analyzeQuery(where, {});
+        let result = clone(query);
+
+
+        cl(result);
+    }
+
+
+    function analyzeQuery(wh, obj) {
+        obj = clone(obj);
+        let groups = {};
+
+        if (wh.hasOwnProperty("children")) {
+            for (let i = 0; i < wh.children.length; i++) {
+                let c = wh.children[i];
+                if (!obj.hasOwnProperty(c.column)) obj[c.column] = {};
+                obj[c.column][c.op] = c.value;
+            }
+
+            return obj;
+        } else {
+
+            let op = wh.ops[0].type;
+
+            let an1 = analyzeQuery(wh.groups[0], obj);
+            let an2 = analyzeQuery(wh.groups[1], obj);
+
+            let temp = {};
+            temp[op] = [];
+
+            if (Object.keys(an1).length) temp[op].push(an1);
+            if (Object.keys(an2).length) temp[op].push(an2);
+
+            cl(an1, an2);
+
+            groups = temp;
+
+            return groups;
+        }
+
+    }
+
+
+
+
+
+
+
+
+
+
+
+</script>
+
+
+<style>
+    ._cb {
+        color: #0069d9;
+    }
+
+    .placeholder {
+        height: 55px;
+        width: 100%;
+        margin-top: 20px;
+        border: 1px solid #dadada;
+        background-color: #f9fbfc;
+        border-radius: 0.5rem !important;
+    }
+
+    input.is-empty,
+    input.is-invalid {
+        border-color: red !important;
+    }
+
+    .filter-system input {
+        padding: 3px 15px;
+        outline: none;
+        border: 1px solid #dadada;
+        border-radius: 7px;
+        height: 34px !important;
+    }
+
+    .select2-container--default .select2-results__option--highlighted.select2-results__option--selectable {
+        background-color: #0069d9;
+    }
+
+    .small .select2-results__option--selectable {
+        font-size: 11px !important;
+        padding: 2px !important;
+
+    }
+
+    .filter-system .select2 .select2-selection__arrow {
+        display: none !important;
+    }
+
+    .filter-system .select2-selection.select2-selection--single {
+        border: 1px solid #dadada;
+        border-radius: 7px;
+        height: 34px !important;
+        padding: 2px 0px !important;
+        font-weight: 600;
+    }
+
+    .filter-system .select2-selection__rendered {
+        padding: 0 15px !important;
+    }
+
+    .filter-system .and-or {
+        width: 50px;
+        margin-top: 7px;
+        margin-bottom: 7px;
+    }
+
+    .filter-system .and-or::before {
+        content: '';
+        position: absolute;
+        left: 50%;
+        transform: translateX(-50%);
+        top: -7px;
+        height: 10px;
+        width: 1px;
+        background-color: #0069d9;
+    }
+
+    .filter-system .and-or::after {
+        content: '';
+        position: absolute;
+        left: 50%;
+        transform: translateX(-50%);
+        bottom: -7px;
+        height: 8px;
+        width: 1px;
+        background-color: #0069d9;
+    }
+
+    .filter-system .and-or .select2-selection.select2-selection--single {
+        border-radius: 10px;
+        border: 1px solid #0069d9;
+        height: 20px !important;
+        padding: 0px !important;
+        font-size: 11px !important;
+        font-weight: 600;
+        background-color: #ECEFFB;
+    }
+
+    .filter-system .and-or .select2-container--default .select2-selection--single .select2-selection__rendered {
+        line-height: 19px !important;
+        padding-left: 5px !important;
+        padding-right: 5px !important;
+    }
+
+
+    .filter-system .arrow-down {
+        z-index: 99999999;
+        color: #0069d9;
+        pointer-events: none;
+    }
+
+
+    .filter-system .group {
+        border: 1px solid #dadada;
+    }
+
+    .filter-system .group:hover {
+        border-color: #0069d9;
+    }
+
+    .filter-system .condition {
+        border: 1px solid #dadada;
+        background-color: #f9fbfc;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+
+    .filter-system .condition:not(:first-of-type) {
+        margin-top: 20px;
+    }
+
+    .filter-system .condition .inputs {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        border-left: 1px solid #dadada;
+        border-right: 1px solid #dadada;
+    }
+
+    .filter-system .condition .handler {
+        width: 40px;
+        color: #92959d;
+    }
+
+    .filter-system .condition .delete {
+        width: 35px;
+        color: #92959d;
+    }
+
+    .filter-system .actions {
+        border-top: 1px solid #dadada;
+    }
+
+    .filter-system .actions {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+</style>
